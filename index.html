@@ -182,15 +182,15 @@
 
   const BEACH_PREDATORS = [
     { emoji: '🦀', size: 24,  speed: [25, 45] },                      // ghost crab — turtle-scale
-    { sprite: 'critter', key: 'heron',   size: 108, speed: [50, 78] },  // gull-slot -> heron
-    { sprite: 'critter', key: 'heron',   size: 90,  speed: [48, 78] },  // tern-slot -> heron (smaller)
-    { sprite: 'critter', key: 'heron',   size: 132, speed: [40, 65] },  // heron
-    { sprite: 'critter', key: 'vulture', size: 108, speed: [55, 80] }, // vulture
-    { sprite: 'critter', key: 'coati',   size: 125, speed: [45, 70] },  // coati
-    { sprite: 'critter', key: 'coyote',  size: 116, speed: [50, 78] },  // dog-slot -> coyote
-    { emoji: '🧍', size: 130, speed: [30, 50] },                      // person
-    { sprite: 'critter', key: 'coyote',  size: 100, speed: [48, 75] },  // coyote
-    { sprite: 'critter', key: 'fox',     size: 115, speed: [48, 78] },  // fox
+    { sprite: 'critter', key: 'heron',   size: 108, speed: [38, 60] },  // gull-slot -> heron
+    { sprite: 'critter', key: 'heron',   size: 90,  speed: [36, 58] },  // tern-slot -> heron (smaller)
+    { sprite: 'critter', key: 'heron',   size: 132, speed: [34, 52] },  // heron
+    { sprite: 'critter', key: 'vulture', size: 108, speed: [38, 60] }, // vulture
+    { sprite: 'critter', key: 'coati',   size: 125, speed: [36, 56] },  // coati
+    { sprite: 'critter', key: 'coyote',  size: 116, speed: [38, 60] },  // dog-slot -> coyote
+    { emoji: '🧍', size: 130, speed: [28, 46] },                      // person
+    { sprite: 'critter', key: 'coyote',  size: 100, speed: [36, 56] },  // coyote
+    { sprite: 'critter', key: 'fox',     size: 115, speed: [38, 60] },  // fox
     { sprite: 'critter', key: 'lizard',  size: 62,  speed: [20, 35] },  // lizard
     { sprite: 'critter', key: 'armadillo', size: 95, speed: [30, 50] }, // armadillo
     { sprite: 'critter', key: 'fire_ant',  size: 26, speed: [45, 75] }, // fire ant
@@ -385,7 +385,8 @@
         const angle = Math.atan2(dy, dx);
         this.joyThumb.x = this.joyOrigin.x + Math.cos(angle) * dist;
         this.joyThumb.y = this.joyOrigin.y + Math.sin(angle) * dist;
-        this.pointerVec = { x: Math.cos(angle) * (dist / radius), y: Math.sin(angle) * (dist / radius) };
+        const magnitude = Math.min(1, (dist / radius) / 0.65); // reach full speed at 65% of the drag radius, not only at the exact edge
+        this.pointerVec = { x: Math.cos(angle) * magnitude, y: Math.sin(angle) * magnitude };
       });
       const release = (pointer) => {
         if (this.activePointerId === pointer.id) {
