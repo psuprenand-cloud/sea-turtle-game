@@ -911,7 +911,15 @@
 
       this.air = 100;
       this.airMax = 100;
-      this.shallowY = 320; // above this = shallow (air regen), below = deep (air drains, more food)
+      this.surfaceY = 70; // the turtle must actually reach this band near the top to breathe — air drains everywhere else
+
+      // A real, visible water surface at the top of the screen, not just an
+      // invisible depth threshold — lighter water above, a shimmering line
+      // marking the air/water boundary itself.
+      const surfaceBand = this.add.graphics().setDepth(2).setScrollFactor(0);
+      surfaceBand.fillGradientStyle(0xcdeeff, 0xcdeeff, 0x1f7ab3, 0x1f7ab3, 0.85, 0.85, 0, 0);
+      surfaceBand.fillRect(0, 0, 800, this.surfaceY + 15);
+      this.surfaceLineGraphics = this.add.graphics().setDepth(3).setScrollFactor(0);
 
       this.physics.world.setBounds(0, 0, 800, 600);
       this.player.body.setCollideWorldBounds(true);
@@ -935,7 +943,7 @@
 
       this.add.rectangle(80, 70, 120, 14, 0x000000, 0.4).setScrollFactor(0).setStrokeStyle(2, 0xffffff).setDepth(1000);
       this.airFill = this.add.rectangle(80 - 58, 70, 4, 8, 0x8ad4ff).setOrigin(0, 0.5).setScrollFactor(0).setDepth(1000);
-      this.add.text(80, 70, 'Air', { fontSize: '10px', color: '#ffffff' }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+      this.add.text(80, 70, 'Air', { fontSize: '14px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
 
       this.controls = new Controls(this);
     }
@@ -946,7 +954,7 @@
       const dietKey = Phaser.Utils.Array.GetRandom(species.diet);
       const emoji = FOOD_EMOJI[dietKey] || '🔵';
       const x = Phaser.Math.Between(60, 740);
-      const y = Phaser.Math.Between(60, 560);
+      const y = Phaser.Math.Between(320, 560);
       const item = makeEmoji(this, x, y, emoji, 32, 0.95);
       item.setDepth(5);
       this.food.add(item);
@@ -967,7 +975,7 @@
     }
 
     spawnDebris() {
-      const y = Phaser.Math.Between(100, 520);
+      const y = Phaser.Math.Between(this.surfaceY + 30, 290);
       const clump = this.add.sprite(830, y, 'critter_sargassum').setDepth(4).setAlpha(0.92);
       const aspect = clump.height / clump.width;
       const targetW = 110;
@@ -1023,14 +1031,24 @@
       const targetTilt = Phaser.Math.Clamp(dir.y, -1, 1) * 0.22 * tiltSign;
       this.player.rotation = Phaser.Math.Linear(this.player.rotation, targetTilt, 0.15);
 
-      const isDeep = this.player.y > this.shallowY;
-      if (isDeep) {
-        this.air = Math.max(0, this.air - 9 * dt);
+      const atSurface = this.player.y < this.surfaceY;
+      if (atSurface) {
+        this.air = Math.min(this.airMax, this.air + 32 * dt);
       } else {
-        this.air = Math.min(this.airMax, this.air + 26 * dt);
+        this.air = Math.max(0, this.air - 9 * dt);
       }
       this.airFill.width = 112 * (this.air / this.airMax);
       this.airFill.setFillStyle(this.air < 25 ? 0xff8a8a : 0x8ad4ff);
+
+      this.surfaceLineGraphics.clear();
+      const t = this.time.now;
+      this.surfaceLineGraphics.lineStyle(3, 0xffffff, 0.55);
+      this.surfaceLineGraphics.beginPath();
+      for (let x = 0; x <= 800; x += 20) {
+        const yOff = Math.sin(x * 0.05 + t * 0.003) * 4;
+        if (x === 0) this.surfaceLineGraphics.moveTo(x, this.surfaceY + yOff); else this.surfaceLineGraphics.lineTo(x, this.surfaceY + yOff);
+      }
+      this.surfaceLineGraphics.strokePath();
 
       if (this.air <= 0) {
         this.predatorTimer.remove();
@@ -1155,11 +1173,11 @@
 
       this.add.rectangle(80, 70, 120, 14, 0x000000, 0.4).setScrollFactor(0).setStrokeStyle(2, 0xffffff).setDepth(1000);
       this.barnacleFill = this.add.rectangle(80 - 58, 70, 4, 8, 0xd8c79a).setOrigin(0, 0.5).setScrollFactor(0).setDepth(1000);
-      this.add.text(80, 70, 'Barnacles', { fontSize: '9px', color: '#ffffff' }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+      this.add.text(80, 70, 'Barnacles', { fontSize: '13px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
 
       this.add.rectangle(720, 70, 120, 14, 0x000000, 0.4).setScrollFactor(0).setStrokeStyle(2, 0xffffff).setDepth(1000);
       this.progressFill = this.add.rectangle(720 - 58, 70, 4, 8, 0xffe08a).setOrigin(0, 0.5).setScrollFactor(0).setDepth(1000);
-      this.add.text(720, 70, 'Progress', { fontSize: '9px', color: '#ffffff' }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
+      this.add.text(720, 70, 'Progress', { fontSize: '13px', color: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5).setScrollFactor(0).setDepth(1001);
 
       this.cleaningText = this.add.text(400, 100, '✨ Cleaner fish at work — barnacles clearing!', { fontSize: '13px', color: '#caffd8' })
         .setOrigin(0.5).setScrollFactor(0).setDepth(1000).setVisible(false);
